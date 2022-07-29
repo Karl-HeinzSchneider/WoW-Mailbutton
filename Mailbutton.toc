@@ -1,0 +1,7 @@
+## Interface: 20504
+## Title: Mailbutton
+## Notes: :3
+## Version: 0.0.1
+## SavedVariables: buttonNames
+
+Mailbutton.lua
