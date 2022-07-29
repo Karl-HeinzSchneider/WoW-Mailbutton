@@ -1,6 +1,8 @@
 ## Interface: 20504
 ## Title: Mailbutton
 ## Notes: :3
+## Author: Karl-Heinz Schneider
+## X-Website: https://github.com/Karl-HeinzSchneider/WoW-Mailbutton
 ## Version: 0.0.1
 ## SavedVariables: buttonNames
 
