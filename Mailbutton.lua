@@ -4,12 +4,15 @@
 local buttonTable = nil
 local clearButton = nil
 local plusButton = nil
+local removeButton = nil
 
-local maxButtons = 7
+local maxButtons = 8
+local removeShown = false
 
 local sizeX = 100
 local sizeY = 40
 local paddingLeft = 5
+local paddingRight = 5
 local paddingTop = 3
 local paddingBottom = 0
 
@@ -64,6 +67,10 @@ function updateButtons()
         plusButton = addPlusButton(maxButtons + 1)
     end
 
+    if removeButton == nil then
+        removeButton = addRemoveToggleButton(maxButtons + 1)
+    end
+
     for index, v in ipairs(buttonTable) do
         local btn = buttonTable[index]
 
@@ -104,18 +111,47 @@ function addButton(index)
         end
     )
 
+    local remove = CreateFrame('Button', 'mbButtonRemove' .. index, btn, 'UIPanelButtonTemplate')
+    remove:SetSize(sizeY, sizeY)
+    remove:SetPoint('RIGHT', btn, sizeY, 0)
+    remove:SetText('X')
+    remove:SetScript(
+        'OnClick',
+        function(self, button)
+            btnRemoveClicked(index)
+        end
+    )
+
+    btn.removeBtn = remove
+    btn.removeBtn:Hide()
+
     return btn
 end
 
 function addPlusButton(index)
     local btn = CreateFrame('Button', 'mbAddButton', SendMailFrame, 'UIPanelButtonTemplate')
-    btn:SetSize(sizeX, sizeY)
-    btn:SetPoint('TOPRIGHT', SendMailFrame, sizeX / 2 + paddingLeft, -1 * index * (sizeY + paddingBottom) + paddingTop)
+    btn:SetSize(sizeX / 2, sizeY)
+    btn:SetPoint('TOPRIGHT', SendMailFrame, paddingLeft, -1 * index * (sizeY + paddingBottom) + paddingTop)
     btn:SetText('+')
     btn:SetScript(
         'OnClick',
         function(self, button)
             btnPlusClicked()
+        end
+    )
+
+    return btn
+end
+
+function addRemoveToggleButton(index)
+    local btn = CreateFrame('Button', 'mbRemoveButton', SendMailFrame, 'UIPanelButtonTemplate')
+    btn:SetSize(sizeX / 2, sizeY)
+    btn:SetPoint('TOPRIGHT', SendMailFrame, sizeX / 2 + paddingLeft, -1 * index * (sizeY + paddingBottom) + paddingTop)
+    btn:SetText('-')
+    btn:SetScript(
+        'OnClick',
+        function(self, button)
+            btnRemoveToggleClicked()
         end
     )
 
@@ -133,8 +169,41 @@ function btnNameClicked(index)
 end
 
 function btnPlusClicked()
-    print('++')
     local popup = StaticPopup_Show('MAILBUTTON_PLUS')
+end
+
+function btnRemoveToggleClicked()
+    removeShown = not removeShown
+    showRemoveButtons(removeShown)
+end
+
+function btnRemoveClicked(index)
+    if buttonNames[index] then
+        local name = buttonNames[index]
+
+        local popup = StaticPopup_Show('MAILBUTTON_REMOVE')
+        if popup then
+            popup.text:SetText('Remove Mailbutton for ' .. strColor(name, 'yellow') .. '?')
+            popup.data = name
+        end
+    end
+end
+
+--
+function showRemoveButtons(bShow)
+    for index, v in ipairs(buttonTable) do
+        local btn = buttonTable[index]
+        local removeBtn = btn.removeBtn
+
+        if buttonNames[index] then
+            if bShow then
+                removeBtn:Show()
+            else
+                removeBtn:Hide()
+            end
+        else
+        end
+    end
 end
 
 -- popup
@@ -145,6 +214,7 @@ StaticPopupDialogs['MAILBUTTON_PLUS'] = {
     button2 = 'Close',
     OnShow = function(self, data)
         self.editBox:SetText('')
+        self.editBox:SetAutoFocus(true)
     end,
     OnAccept = function(self, data, data2)
         local text = self.editBox:GetText()
@@ -161,6 +231,26 @@ StaticPopupDialogs['MAILBUTTON_PLUS'] = {
     hasEditBox = true
 }
 
+StaticPopupDialogs['MAILBUTTON_REMOVE'] = {
+    text = 'Remove XY?',
+    button1 = 'Remove',
+    button2 = 'Close',
+    OnShow = function(self, data)
+    end,
+    OnAccept = function(self, data, data2)
+        removeButtonName(data)
+        updateButtons()
+        removeShown = false
+        showRemoveButtons(removeShown)
+    end,
+    OnCancel = function(self, data, data2)
+        removeShown = false
+        showRemoveButtons(removeShown)
+    end,
+    timeout = 0,
+    whileDead = true,
+    hideOnEscape = true
+}
 -- Util WoW
 
 function setMailName(name)
