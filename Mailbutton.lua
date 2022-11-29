@@ -134,7 +134,32 @@ end
 
 function btnPlusClicked()
     print('++')
+    local popup = StaticPopup_Show('MAILBUTTON_PLUS')
 end
+
+-- popup
+-- https://wowpedia.fandom.com/wiki/Creating_simple_pop-up_dialog_boxes
+StaticPopupDialogs['MAILBUTTON_PLUS'] = {
+    text = 'Enter Charactername to add as Button',
+    button1 = 'Add',
+    button2 = 'Close',
+    OnShow = function(self, data)
+        self.editBox:SetText('')
+    end,
+    OnAccept = function(self, data, data2)
+        local text = self.editBox:GetText()
+        if text and not (text == '') then
+            addButtonName(text)
+            updateButtons()
+        else
+            printAddonMessage('ERROR - input correct Charactername!')
+        end
+    end,
+    timeout = 0,
+    whileDead = true,
+    hideOnEscape = true,
+    hasEditBox = true
+}
 
 -- Util WoW
 
