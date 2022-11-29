@@ -3,6 +3,7 @@
 --local buttonNames = {"Zímtschnecke", "test"}
 local buttonTable = nil
 local clearButton = nil
+local plusButton = nil
 
 local maxButtons = 7
 
@@ -59,6 +60,10 @@ function updateButtons()
         end
     end
 
+    if plusButton == nil then
+        plusButton = addPlusButton(maxButtons + 1)
+    end
+
     for index, v in ipairs(buttonTable) do
         local btn = buttonTable[index]
 
@@ -102,6 +107,21 @@ function addButton(index)
     return btn
 end
 
+function addPlusButton(index)
+    local btn = CreateFrame('Button', 'mbAddButton', SendMailFrame, 'UIPanelButtonTemplate')
+    btn:SetSize(sizeX, sizeY)
+    btn:SetPoint('TOPRIGHT', SendMailFrame, sizeX / 2 + paddingLeft, -1 * index * (sizeY + paddingBottom) + paddingTop)
+    btn:SetText('+')
+    btn:SetScript(
+        'OnClick',
+        function(self, button)
+            btnPlusClicked()
+        end
+    )
+
+    return btn
+end
+
 -- Button functions
 
 function btnClearClicked()
@@ -110,6 +130,10 @@ end
 
 function btnNameClicked(index)
     setMailName(buttonNames[index])
+end
+
+function btnPlusClicked()
+    print('++')
 end
 
 -- Util WoW
