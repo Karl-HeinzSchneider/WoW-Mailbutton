@@ -14,31 +14,35 @@ local paddingBottom = 0
 
 local colorTable = {
     ['yellow'] = '|c00ffff00',
-    ['green'] = '|c0000ff00', 
+    ['green'] = '|c0000ff00',
     ['orange'] = '|c00ffc400',
-    ['red'] = '|c00ff0000',
+    ['red'] = '|c00ff0000'
 }
 
 -- Frame
 
-local frame = CreateFrame("FRAME")
-frame:RegisterEvent("ADDON_LOADED")
+local frame = CreateFrame('FRAME')
+frame:RegisterEvent('ADDON_LOADED')
 
 function frame:OnEvent(event, arg1)
-    if event == "ADDON_LOADED" and arg1 == "Mailbutton" then
-       local version = GetAddOnMetadata("Mailbutton", "Version");
+    if event == 'ADDON_LOADED' and arg1 == 'Mailbutton' then
+        local version = GetAddOnMetadata('Mailbutton', 'Version')
 
-       printAddonMessage( 'Addon '.. strColor('v'..version, 'yellow') .. ' Loaded, type ' .. strColor('/mb','green') .. ' for command list')
+        printAddonMessage(
+            'Addon ' ..
+                strColor('v' .. version, 'yellow') ..
+                    ' Loaded, type ' .. strColor('/mb', 'green') .. ' for command list'
+        )
 
         -- default Value
         if buttonNames == nil then
             buttonNames = {}
         end
-        
-        updateButtons()    
+
+        updateButtons()
     end
 end
-frame:SetScript("OnEvent",frame.OnEvent)
+frame:SetScript('OnEvent', frame.OnEvent)
 
 -- Buttons
 
@@ -49,13 +53,13 @@ function updateButtons()
 
     if buttonTable == nil then
         buttonTable = {}
-        for i = 1,maxButtons do 
+        for i = 1, maxButtons do
             local newBtn = addButton(i)
             table.insert(buttonTable, newBtn)
         end
     end
 
-    for index, v in ipairs(buttonTable) do 
+    for index, v in ipairs(buttonTable) do
         local btn = buttonTable[index]
 
         if buttonNames[index] then
@@ -69,40 +73,44 @@ function updateButtons()
 end
 
 function addClearButton()
-    local btn = CreateFrame("Button", 'mbClearButton', SendMailFrame, "UIPanelButtonTemplate")
+    local btn = CreateFrame('Button', 'mbClearButton', SendMailFrame, 'UIPanelButtonTemplate')
     btn:SetSize(sizeX, sizeY)
-    btn:SetPoint("TOPRIGHT", SendMailFrame, sizeX/2 + paddingLeft, paddingTop)
-    btn:SetText("Clear")
-    btn:SetScript("OnClick", function(self, button)
-        btnClearClicked()
-    end)
+    btn:SetPoint('TOPRIGHT', SendMailFrame, sizeX / 2 + paddingLeft, paddingTop)
+    btn:SetText('Clear')
+    btn:SetScript(
+        'OnClick',
+        function(self, button)
+            btnClearClicked()
+        end
+    )
 
     return btn
 end
 
-
-function addButton( index)
-    local btn = CreateFrame("Button", 'mbButton'..index, SendMailFrame, "UIPanelButtonTemplate")
+function addButton(index)
+    local btn = CreateFrame('Button', 'mbButton' .. index, SendMailFrame, 'UIPanelButtonTemplate')
     btn:SetSize(sizeX, sizeY)
-    btn:SetPoint("TOPRIGHT", SendMailFrame, sizeX/2 + paddingLeft, -1*index*(sizeY + paddingBottom) + paddingTop)
+    btn:SetPoint('TOPRIGHT', SendMailFrame, sizeX / 2 + paddingLeft, -1 * index * (sizeY + paddingBottom) + paddingTop)
     btn:SetText('EMPTY')
-    btn:SetScript("OnClick", function(self, button)
-        btnNameClicked(index)
-    end)
+    btn:SetScript(
+        'OnClick',
+        function(self, button)
+            btnNameClicked(index)
+        end
+    )
 
     return btn
-end 
+end
 
 -- Button functions
 
-function btnClearClicked()    
+function btnClearClicked()
     setMailName('')
 end
 
 function btnNameClicked(index)
     setMailName(buttonNames[index])
 end
-
 
 -- Util WoW
 
@@ -112,61 +120,58 @@ end
 
 function printAddonMessage(str)
     local pre = 'Mailbutton:  '
-    pre = strColor(pre,'yellow')
-    print(pre..str)  
+    pre = strColor(pre, 'yellow')
+    print(pre .. str)
 end
 
 function listCommands()
     printAddonMessage('Commands:')
 
     local commandTable = {}
-    commandTable[1] = {['cmd']='/mb',['arg'] = nil, ['descr'] = 'to display Help (THIS)'}
-    commandTable[2] = {['cmd']='/mbadd',['arg'] = 'charactername', ['descr'] = 'to add Mailbutton'}
-    commandTable[3] = {['cmd']='/mbremove',['arg'] = 'charactername', ['descr'] = 'to remove Mailbutton'}
+    commandTable[1] = {['cmd'] = '/mb', ['arg'] = nil, ['descr'] = 'to display Help (THIS)'}
+    commandTable[2] = {['cmd'] = '/mbadd', ['arg'] = 'charactername', ['descr'] = 'to add Mailbutton'}
+    commandTable[3] = {['cmd'] = '/mbremove', ['arg'] = 'charactername', ['descr'] = 'to remove Mailbutton'}
 
-    for index,v in ipairs(commandTable) do 
+    for index, v in ipairs(commandTable) do
         local cmdMessage = strColor(v['cmd'], 'green')
 
-        if v['arg'] then 
-            cmdMessage = cmdMessage..' '..strColor(v['arg'], 'orange')
+        if v['arg'] then
+            cmdMessage = cmdMessage .. ' ' .. strColor(v['arg'], 'orange')
         end
 
-        cmdMessage = cmdMessage..' '..v['descr']
+        cmdMessage = cmdMessage .. ' ' .. v['descr']
 
         printAddonMessage(cmdMessage)
     end
 end
 
-function strColor(str, color) 
-
+function strColor(str, color)
     if colorTable[color] then
         local color = colorTable[color]
-        return color..str..'|r'
+        return color .. str .. '|r'
     end
 
     return str
 end
 
-
-
 -- Tablestuff
 
 function addButtonName(name)
     name = makeUppercase(name)
-    if tableHasEntry(buttonNames,name)  then
+    if tableHasEntry(buttonNames, name) then
         printAddonMessage('...')
     else
-        table.insert(buttonNames,name)
-        table.sort(buttonNames)    
-        printAddonMessage('added ' .. strColor(name,'orange') .. '!')
+        table.insert(buttonNames, name)
+        table.sort(buttonNames)
+        printAddonMessage('added ' .. strColor(name, 'orange') .. '!')
     end
 end
 
 function removeButtonName(name)
     name = makeUppercase(name)
-    if tableHasEntry(buttonNames,name) then
+    if tableHasEntry(buttonNames, name) then
         tableRemoveEntry(buttonNames, name)
-        printAddonMessage('removed ' .. strColor(name,'orange') .. '!')
+        printAddonMessage('removed ' .. strColor(name, 'orange') .. '!')
     else
         printAddonMessage('...')
     end
@@ -174,30 +179,29 @@ end
 
 -- Util
 
-function tableHasEntry(t, entry)  
-    for _,v in ipairs(t) do 
+function tableHasEntry(t, entry)
+    for _, v in ipairs(t) do
         if v == entry then
-           return true
-        end        
+            return true
+        end
     end
     return false
 end
 
-function tableRemoveEntry(t, entry)    
-    for index,v in ipairs(t) do
+function tableRemoveEntry(t, entry)
+    for index, v in ipairs(t) do
         --print(index .. '-' .. v)
         if v == entry then
             --print('FOUND ' .. v .. " - " ..index)
-            table.remove(t,index)
+            table.remove(t, index)
             return
         end
-    end   
+    end
 end
 
 function makeUppercase(str)
-    return str:sub(1,1):upper()..str:sub(2)
+    return str:sub(1, 1):upper() .. str:sub(2)
 end
-
 
 -- SLASH commands
 
@@ -206,11 +210,11 @@ SLASH_INFO1 = '/mb'
 SlashCmdList['INFO'] = function(arg1)
     -- cmds
     listCommands()
-    -- overview  
+    -- overview
     if buttonNames[1] then
-        local nameStr = ""
-        for _,name in ipairs(buttonNames) do
-            nameStr = nameStr .. strColor(name,'orange') .. ", "
+        local nameStr = ''
+        for _, name in ipairs(buttonNames) do
+            nameStr = nameStr .. strColor(name, 'orange') .. ', '
         end
         nameStr = nameStr:sub(1, -3)
         printAddonMessage('current Buttons: ' .. nameStr)
@@ -224,10 +228,10 @@ end
 SLASH_ADD1 = '/mbadd'
 SlashCmdList['ADD'] = function(arg1)
     -- overview
-    if(string.len(arg1) < 1) then
-        printAddonMessage(strColor('/mbadd','red')..' - Name Missing!')      
+    if (string.len(arg1) < 1) then
+        printAddonMessage(strColor('/mbadd', 'red') .. ' - Name Missing!')
     else
-        --printAddonMessage('/mbadd ' .. arg1)      
+        --printAddonMessage('/mbadd ' .. arg1)
         addButtonName(arg1)
         updateButtons()
     end
@@ -237,11 +241,11 @@ end
 SLASH_REMOVE1 = '/mbremove'
 SlashCmdList['REMOVE'] = function(arg1)
     -- overview
-    if(string.len(arg1) < 1) then
-        printAddonMessage(strColor('/mbremove','red')..' - Name Missing!')      
+    if (string.len(arg1) < 1) then
+        printAddonMessage(strColor('/mbremove', 'red') .. ' - Name Missing!')
     else
-        --printAddonMessage('/mbremove ' .. arg1)      
-        removeButtonName(arg1)       
+        --printAddonMessage('/mbremove ' .. arg1)
+        removeButtonName(arg1)
         updateButtons()
     end
 end
