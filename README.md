@@ -19,7 +19,7 @@ Small World of Warcraft (classic) Addon to add Buttons to the Mailbox to speed u
 ## Example
 ![](<Screenshots/2022-11-29%2023_40_45-Window.png>)
 ![](<Screenshots/2022-11-29%2023_41_13-Window.png>)
-![](<Screenshots/2022-11-29%2023_41_34-Window.png)
+![](<Screenshots/2022-11-29%2023_41_34-Window.png>)
 
 ## Compatibility
 Developed for default Blizzard UI, but should work on any UI.
