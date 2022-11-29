@@ -2,6 +2,7 @@
  
 Small World of Warcraft (classic) Addon to add Buttons to the Mailbox to speed up sending Mail - just click one of the buttons and the name will be set as mail recipient!
 
+View on Curseforge: https://www.curseforge.com/wow/addons/mailbutton
 
 ## Usage:
 
