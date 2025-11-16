@@ -1,6 +1,5 @@
 -- Vars
-
---local buttonNames = {"Zímtschnecke", "test"}
+-- local buttonNames = {"Zímtschnecke", "test"}
 local buttonTable = nil
 local clearButton = nil
 local plusButton = nil
@@ -33,15 +32,11 @@ function frame:OnEvent(event, arg1)
         local version = GetAddOnMetadata('Mailbutton', 'Version')
 
         printAddonMessage(
-            'Addon ' ..
-                strColor('v' .. version, 'yellow') ..
-                    ' Loaded, type ' .. strColor('/mb', 'green') .. ' for command list'
-        )
+            'Addon ' .. strColor('v' .. version, 'yellow') .. ' Loaded, type ' .. strColor('/mb', 'green') ..
+                ' for command list')
 
         -- default Value
-        if buttonNames == nil then
-            buttonNames = {}
-        end
+        if buttonNames == nil then buttonNames = {} end
 
         updateButtons()
     end
@@ -51,9 +46,7 @@ frame:SetScript('OnEvent', frame.OnEvent)
 -- Buttons
 
 function updateButtons()
-    if clearButton == nil then
-        clearButton = addClearButton()
-    end
+    if clearButton == nil then clearButton = addClearButton() end
 
     if buttonTable == nil then
         buttonTable = {}
@@ -63,13 +56,9 @@ function updateButtons()
         end
     end
 
-    if plusButton == nil then
-        plusButton = addPlusButton(maxButtons + 1)
-    end
+    if plusButton == nil then plusButton = addPlusButton(maxButtons + 1) end
 
-    if removeButton == nil then
-        removeButton = addRemoveToggleButton(maxButtons + 1)
-    end
+    if removeButton == nil then removeButton = addRemoveToggleButton(maxButtons + 1) end
 
     for index, v in ipairs(buttonTable) do
         local btn = buttonTable[index]
@@ -89,12 +78,9 @@ function addClearButton()
     btn:SetSize(sizeX, sizeY)
     btn:SetPoint('TOPRIGHT', SendMailFrame, sizeX / 2 + paddingLeft, paddingTop)
     btn:SetText('Clear')
-    btn:SetScript(
-        'OnClick',
-        function(self, button)
-            btnClearClicked()
-        end
-    )
+    btn:SetScript('OnClick', function(self, button)
+        btnClearClicked()
+    end)
 
     return btn
 end
@@ -104,23 +90,17 @@ function addButton(index)
     btn:SetSize(sizeX, sizeY)
     btn:SetPoint('TOPRIGHT', SendMailFrame, sizeX / 2 + paddingLeft, -1 * index * (sizeY + paddingBottom) + paddingTop)
     btn:SetText('EMPTY')
-    btn:SetScript(
-        'OnClick',
-        function(self, button)
-            btnNameClicked(index)
-        end
-    )
+    btn:SetScript('OnClick', function(self, button)
+        btnNameClicked(index)
+    end)
 
     local remove = CreateFrame('Button', 'mbButtonRemove' .. index, btn, 'UIPanelButtonTemplate')
     remove:SetSize(sizeY, sizeY)
     remove:SetPoint('RIGHT', btn, sizeY, 0)
     remove:SetText('X')
-    remove:SetScript(
-        'OnClick',
-        function(self, button)
-            btnRemoveClicked(index)
-        end
-    )
+    remove:SetScript('OnClick', function(self, button)
+        btnRemoveClicked(index)
+    end)
 
     btn.removeBtn = remove
     btn.removeBtn:Hide()
@@ -133,12 +113,9 @@ function addPlusButton(index)
     btn:SetSize(sizeX / 2, sizeY)
     btn:SetPoint('TOPRIGHT', SendMailFrame, paddingLeft, -1 * index * (sizeY + paddingBottom) + paddingTop)
     btn:SetText('+')
-    btn:SetScript(
-        'OnClick',
-        function(self, button)
-            btnPlusClicked()
-        end
-    )
+    btn:SetScript('OnClick', function(self, button)
+        btnPlusClicked()
+    end)
 
     return btn
 end
@@ -148,12 +125,9 @@ function addRemoveToggleButton(index)
     btn:SetSize(sizeX / 2, sizeY)
     btn:SetPoint('TOPRIGHT', SendMailFrame, sizeX / 2 + paddingLeft, -1 * index * (sizeY + paddingBottom) + paddingTop)
     btn:SetText('-')
-    btn:SetScript(
-        'OnClick',
-        function(self, button)
-            btnRemoveToggleClicked()
-        end
-    )
+    btn:SetScript('OnClick', function(self, button)
+        btnRemoveToggleClicked()
+    end)
 
     return btn
 end
@@ -274,9 +248,7 @@ function listCommands()
     for index, v in ipairs(commandTable) do
         local cmdMessage = strColor(v['cmd'], 'green')
 
-        if v['arg'] then
-            cmdMessage = cmdMessage .. ' ' .. strColor(v['arg'], 'orange')
-        end
+        if v['arg'] then cmdMessage = cmdMessage .. ' ' .. strColor(v['arg'], 'orange') end
 
         cmdMessage = cmdMessage .. ' ' .. v['descr']
 
@@ -319,19 +291,15 @@ end
 -- Util
 
 function tableHasEntry(t, entry)
-    for _, v in ipairs(t) do
-        if v == entry then
-            return true
-        end
-    end
+    for _, v in ipairs(t) do if v == entry then return true end end
     return false
 end
 
 function tableRemoveEntry(t, entry)
     for index, v in ipairs(t) do
-        --print(index .. '-' .. v)
+        -- print(index .. '-' .. v)
         if v == entry then
-            --print('FOUND ' .. v .. " - " ..index)
+            -- print('FOUND ' .. v .. " - " ..index)
             table.remove(t, index)
             return
         end
@@ -352,14 +320,12 @@ SlashCmdList['INFO'] = function(arg1)
     -- overview
     if buttonNames[1] then
         local nameStr = ''
-        for _, name in ipairs(buttonNames) do
-            nameStr = nameStr .. strColor(name, 'orange') .. ', '
-        end
+        for _, name in ipairs(buttonNames) do nameStr = nameStr .. strColor(name, 'orange') .. ', ' end
         nameStr = nameStr:sub(1, -3)
         printAddonMessage('current Buttons: ' .. nameStr)
     else
-        --local notFoundMessage = 'no Buttons found - use /mbadd NAME to add Buttons!'
-        --printAddonMessage(notFoundMessage)
+        -- local notFoundMessage = 'no Buttons found - use /mbadd NAME to add Buttons!'
+        -- printAddonMessage(notFoundMessage)
     end
 end
 
@@ -370,7 +336,7 @@ SlashCmdList['ADD'] = function(arg1)
     if (string.len(arg1) < 1) then
         printAddonMessage(strColor('/mbadd', 'red') .. ' - Name Missing!')
     else
-        --printAddonMessage('/mbadd ' .. arg1)
+        -- printAddonMessage('/mbadd ' .. arg1)
         addButtonName(arg1)
         updateButtons()
     end
@@ -383,7 +349,7 @@ SlashCmdList['REMOVE'] = function(arg1)
     if (string.len(arg1) < 1) then
         printAddonMessage(strColor('/mbremove', 'red') .. ' - Name Missing!')
     else
-        --printAddonMessage('/mbremove ' .. arg1)
+        -- printAddonMessage('/mbremove ' .. arg1)
         removeButtonName(arg1)
         updateButtons()
     end
