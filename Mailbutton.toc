@@ -1,9 +1,12 @@
-## Interface: 20504
+## Interface:  50502, 11508
+## Interface-Mists: 50502
+## Interface-Classic: 11508
 ## Title: Mailbutton
 ## Notes: Adds Buttons to the Mailbox to speed up sending Mail!
 ## Author: Karl-Heinz Schneider
 ## X-Website: https://github.com/Karl-HeinzSchneider/WoW-Mailbutton
 ## Version: 0.0.2
-## SavedVariables: buttonNames
+## SavedVariables: buttonNames, MailbuttonDB
 
-Mailbutton.lua
+## Mailbutton.lua
+Mailbutton_standalone.xml
