@@ -1,9 +1,15 @@
-## Interface: 20504
-## Title: Mailbutton
-## Notes: Adds Buttons to the Mailbox to speed up sending Mail!
+## Interface:  50502, 11508
+## Interface-Mists: 50502
+## Interface-Classic: 11508
+## Title: Mailbutton |cff8080ff@project-version@|r
+## Notes: Adds Buttons to the Mailbox to speed up sending Mail!|n|cffbbbbbbBy Karl-Heinz Schneider|r|n|n|TInterface/Addons/Mailbutton/Textures/Art/coffee:12:12|t |cff82c5ffbuymeacoffee.com/karlheinzschneider|r
 ## Author: Karl-Heinz Schneider
 ## X-Website: https://github.com/Karl-HeinzSchneider/WoW-Mailbutton
-## Version: 0.0.2
-## SavedVariables: buttonNames
+## X-Curse-Project-ID: 715166
+## Version: @project-version@
+## X-Date: @project-date-integer@
+## Version: 1.0
+## SavedVariables: MailbuttonDB
 
-Mailbutton.lua
+## Mailbutton.lua
+Mailbutton_standalone.xml
