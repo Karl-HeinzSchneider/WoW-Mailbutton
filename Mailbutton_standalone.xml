@@ -4,6 +4,8 @@
 	<Include file="Libs/AceAddon-3.0/AceAddon-3.0.xml" />
 	<Include file="Libs/AceDB-3.0/AceDB-3.0.xml" />
 	<Include file="Libs/AceDBOptions-3.0/AceDBOptions-3.0.xml" />
+	<Include file="Libs/AceConsole-3.0/AceConsole-3.0.xml" />
+	<Include file="Libs/AceLocale-3.0/AceLocale-3.0.xml" />
 	<Script file="Core.lua" />
 	<!-- <Script file="Options.lua" /> -->
 </Ui>

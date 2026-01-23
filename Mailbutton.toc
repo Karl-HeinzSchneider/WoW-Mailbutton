@@ -1,5 +1,6 @@
-## Interface:  50502, 11508
+## Interface:  50502, 20505, 11508
 ## Interface-Mists: 50502
+## Interface-TBC: 20505
 ## Interface-Classic: 11508
 ## Title: Mailbutton |cff8080ff@project-version@|r
 ## Notes: Adds Buttons to the Mailbox to speed up sending Mail!|n|cffbbbbbbBy Karl-Heinz Schneider|r|n|n|TInterface/Addons/Mailbutton/Textures/Art/coffee:12:12|t |cff82c5ffbuymeacoffee.com/karlheinzschneider|r
