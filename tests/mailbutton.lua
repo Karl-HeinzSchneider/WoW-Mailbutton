@@ -74,6 +74,39 @@ end
 function methods:SetWidth(width)
     self.width = width
 end
+function methods:GetWidth()
+    return rawget(self, "width") or 1920
+end
+function methods:GetRight()
+    return rawget(self, "right") or 500
+end
+function methods:GetEffectiveScale()
+    return rawget(self, "scale") or 1
+end
+function methods:GetScript(event)
+    return self[event]
+end
+function methods:HookScript(event, callback)
+    local original = self[event]
+    self[event] = function(...)
+        if original then
+            original(...)
+        end
+        callback(...)
+    end
+end
+function methods:SetClampedToScreen(value)
+    self.clamped = value
+end
+function methods:SetWordWrap(value)
+    self.wordWrap = value
+end
+function methods:SetOwner(owner)
+    self.owner = owner
+end
+function methods:IsOwned(owner)
+    return rawget(self, "owner") == owner
+end
 function methods:GetStringWidth()
     return #(self.text or "") * 7
 end
@@ -113,6 +146,8 @@ CreateFrame = function()
     return frame()
 end
 SendMailFrame = frame()
+UIParent = frame()
+GameTooltip = frame()
 SendMailNameEditBox = frame()
 app.mail:Refresh()
 assert(app.mail.panel and app.mail.buttons[8].recipient)
@@ -147,11 +182,37 @@ app.mail.options.OnClick()
 assert(opened)
 local longName = "AnexceptionallylongForever Recipient"
 assert(app.recipients:Add(longName))
-local expandedWidth = #longName * 7 + 24
+local expandedWidth = 240
 assert(app.mail.clear.width == expandedWidth)
 for _, recipientButton in ipairs(app.mail.buttons) do
     assert(recipientButton.width == expandedWidth and recipientButton.height == 24)
 end
+assert(app.mail.panel.clamped and app.mail.buttons[1].label.wordWrap == false)
+app.mail.page = 2
+app.mail:Refresh()
+local clippedRow
+for _, recipientButton in ipairs(app.mail.buttons) do
+    if recipientButton.recipient == longName then
+        clippedRow = recipientButton
+    end
+end
+assert(clippedRow and clippedRow.clipped)
+clippedRow.OnEnter(clippedRow)
+assert(GameTooltip.shown and GameTooltip.text == longName)
+clippedRow.OnLeave(clippedRow)
+assert(not GameTooltip.shown)
+clippedRow.OnClick(clippedRow)
+assert(SendMailNameEditBox.text == longName)
+SendMailFrame.right = 1800
+app.mail.panel.OnUpdate()
+assert(app.mail.panel.anchor[1] == "TOPRIGHT" and app.mail.panel.anchor[3] == "TOPLEFT")
+SendMailFrame.right = 500
+app.mail.panel.OnUpdate()
+assert(app.mail.panel.anchor[1] == "TOPLEFT")
+SendMailFrame.scale = 4
+app.mail.panel.OnUpdate()
+assert(app.mail.panel.anchor[1] == "TOPRIGHT")
+SendMailFrame.scale = 1
 assert(app.mail.add.width == 40 and app.mail.removeToggle.width == 40 and app.mail.options.width == 40)
 assert(app.recipients:Remove(longName))
 assert(app.mail.clear.width == 132)
