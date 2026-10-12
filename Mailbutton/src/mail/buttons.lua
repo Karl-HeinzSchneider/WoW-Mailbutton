@@ -163,9 +163,25 @@ function mail:Create()
     panel:SetSize(MINIMUM_WIDTH + 36, 440)
     panel:SetPoint("TOPLEFT", parent, "TOPRIGHT", 5, 0)
     panel:SetClampedToScreen(true)
-    panel:SetScript("OnUpdate", function()
+    local function reposition()
         self:Position()
-    end)
+    end
+    panel:SetScript("OnShow", reposition)
+    panel:SetScript("OnSizeChanged", reposition)
+    panel:RegisterEvent("DISPLAY_SIZE_CHANGED")
+    panel:RegisterEvent("UI_SCALE_CHANGED")
+    panel:SetScript("OnEvent", reposition)
+    -- Mail addons can move or scale the mailbox or its containing frame.
+    -- Recheck after those changes, including the end of a native drag.
+    local ancestor = parent
+    while ancestor do
+        ancestor:HookScript("OnShow", reposition)
+        ancestor:HookScript("OnSizeChanged", reposition)
+        for _, method in ipairs({ "SetPoint", "SetAllPoints", "ClearAllPoints", "SetScale", "StopMovingOrSizing" }) do
+            hooksecurefunc(ancestor, method, reposition)
+        end
+        ancestor = ancestor:GetParent()
+    end
     self.panel = panel
     self.measurement = panel:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     self.measurement:Hide()
@@ -251,6 +267,7 @@ function mail:Create()
     self.search:SetScript("OnHide", function(edit)
         edit:ClearFocus()
     end)
+    self:Position()
 end
 
 function mail:Refresh()
@@ -318,7 +335,6 @@ function mail:Refresh()
     self.previous:SetEnabled(self.page > 1)
     self.next:SetEnabled(self.page < pages)
     self.panel:Show()
-    self:Position()
 end
 
 function mail:Hide()
