@@ -1,0 +1,8 @@
+---@class Mailbutton
+---@field logger Mailbutton.Logger
+---@field addon table
+---@field dbDefaults table
+---@field db table
+---@field recipients table
+---@field mail table
+---@field NormalizeRecipients fun(db: table)

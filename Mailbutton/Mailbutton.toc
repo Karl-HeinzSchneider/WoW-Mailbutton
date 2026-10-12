@@ -1,0 +1,20 @@
+## Interface: 16001, 120001, 50502, 20505, 11508
+## Interface-Mists: 50502
+## Interface-TBC: 20505
+## Interface-Classic: 11508
+## Title: Mailbutton
+## Notes: Saved recipient buttons beside the send-mail form.
+## Author: Karl-Heinz Schneider
+## X-Website: https://github.com/Karl-HeinzSchneider/WoW-Mailbutton
+## X-Curse-Project-ID: 715166
+## Version: @project-version@
+## SavedVariables: MailbuttonDB
+## X-License: MIT
+
+embeds.xml
+src\core\logger.lua
+src\core\db.lua
+src\core\ace.lua
+src\mail\recipients.lua
+src\mail\buttons.lua
+Mailbutton.lua
