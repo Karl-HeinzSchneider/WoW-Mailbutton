@@ -97,6 +97,16 @@ function options:Register()
         apply(false)
     end)
     action("Export", 232, export)
+    action("Undo", 340, function()
+        if app.recipients:Undo() then
+            edit:SetText(app.recipients:Export())
+            edit:ClearFocus()
+            scroll:SetVerticalScroll(0)
+            status:SetText("Previous recipient list restored.")
+        else
+            status:SetText("Nothing to undo. Undo lasts until the next list edit or reload.")
+        end
+    end)
     if Settings and Settings.RegisterCanvasLayoutCategory and Settings.RegisterAddOnCategory then
         self.category = Settings.RegisterCanvasLayoutCategory(panel, panel.name)
         Settings.RegisterAddOnCategory(self.category)

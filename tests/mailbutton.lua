@@ -113,6 +113,9 @@ local methods = {}
 function methods:SetText(text)
     self.text = text
 end
+function methods:GetText()
+    return self.text
+end
 function methods:SetShown(value)
     self.shown = value
 end
@@ -211,6 +214,18 @@ GameTooltip = frame()
 SendMailNameEditBox = frame()
 app.mail:Refresh()
 assert(app.mail.panel and app.mail.buttons[8].recipient)
+assert(app.mail.summary.text == "Page 1/2 · 15 recipients")
+assert(app.mail.search.shown)
+app.mail.search:SetText("Alt1")
+app.mail.search.OnTextChanged(app.mail.search)
+assert(app.mail.summary.text == "Page 1/1 · 4/15 recipients")
+assert(app.mail.buttons[1].recipient == "Alt1")
+app.mail.search:SetText("[no match]")
+app.mail.search.OnTextChanged(app.mail.search)
+assert(not app.mail.buttons[1].shown and app.mail.search.shown)
+assert(app.mail.summary.text == "Page 1/1 · 0/15 recipients")
+app.mail.search:SetText("")
+app.mail.search.OnTextChanged(app.mail.search)
 assert(not app.mail.previous.enabled and app.mail.next.enabled)
 app.mail.next.OnClick()
 assert(app.mail.page == 2 and app.mail.previous.enabled and not app.mail.next.enabled)
@@ -222,6 +237,10 @@ local removed = row.recipient
 row.remove.OnClick()
 assert(not db.nameTable[removed])
 assert(app.mail.buttons[6].shown and not app.mail.buttons[7].shown)
+assert(app.mail.undo.enabled)
+app.mail.undo.OnClick()
+assert(db.nameTable[removed] and not app.mail.undo.enabled)
+assert(app.recipients:Remove(removed))
 GetBuildInfo = function()
     return "", "", "", 16001
 end
@@ -293,6 +312,23 @@ assert(app.recipients:Export() == exported)
 assert(not app.recipients:Import("", false))
 assert(app.recipients:Import("", true))
 assert(#app.recipients:List() == 0)
+assert(not app.mail.search.shown)
+local savedMap = db.nameTable
+assert(app.recipients:Undo())
+assert(db.nameTable == savedMap and app.recipients:Export() == exported)
+assert(not app.recipients:Undo())
+assert(app.recipients:Import("Another Name", true))
+assert(not app.recipients:Import("|Hbad", true))
+assert(app.recipients:Undo() and app.recipients:Export() == exported)
+assert(app.recipients:Remove("Alt Realm"))
+assert(not app.recipients:Remove("Missing Name"))
+assert(app.recipients:Undo() and db.nameTable["Alt Realm"])
+assert(app.recipients:Remove("Alt Realm"))
+assert(app.recipients:Add("New Name"))
+assert(not app.recipients:Undo() and db.nameTable["New Name"])
+assert(app.recipients:Remove("New Name"))
+assert(app.recipients:Import("Merged Name", false))
+assert(not app.recipients:Undo() and db.nameTable["Merged Name"])
 GetBuildInfo = function()
     return "", "", "", 120000
 end

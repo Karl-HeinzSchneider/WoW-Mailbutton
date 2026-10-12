@@ -2,6 +2,30 @@ local _, app = ...
 local recipients = {}
 app.recipients = recipients
 
+-- One session-only snapshot; never add undo state to saved variables.
+function recipients:Remember()
+    self.undoNames = {}
+    for name, enabled in pairs(app.db.factionrealm.nameTable) do
+        self.undoNames[name] = enabled
+    end
+end
+
+function recipients:Undo()
+    if not self.undoNames then
+        return false
+    end
+    local saved = app.db.factionrealm.nameTable
+    for name in pairs(saved) do
+        saved[name] = nil
+    end
+    for name, enabled in pairs(self.undoNames) do
+        saved[name] = enabled
+    end
+    self.undoNames = nil
+    app.mail:Refresh()
+    return true
+end
+
 function recipients:IsDoubleNameClient()
     -- Current Forever clients have their own project ID; Retail is also mainline.
     if WOW_PROJECT_CAMELOT ~= nil and WOW_PROJECT_ID == WOW_PROJECT_CAMELOT then
@@ -88,12 +112,16 @@ function recipients:Import(text, replace)
     end
     local saved = app.db.factionrealm.nameTable
     if replace then
+        self:Remember()
         for name in pairs(saved) do
             saved[name] = nil
         end
     end
     for _, name in ipairs(names) do
         if not self:Find(name) then
+            if not replace then
+                self.undoNames = nil
+            end
             saved[name] = true
         end
     end
@@ -131,6 +159,7 @@ function recipients:Add(name)
     end
     -- Preserve UTF-8 spelling and realm capitalization instead of byte-wise title casing.
     if not self:Find(name) then
+        self.undoNames = nil
         app.db.factionrealm.nameTable[name] = true
     end
     app.mail:Refresh()
@@ -141,6 +170,7 @@ function recipients:Remove(name)
     name = type(name) == "string" and name:match("^%s*(.-)%s*$") or ""
     local saved = self:Find(name)
     if saved then
+        self:Remember()
         app.db.factionrealm.nameTable[saved] = nil
     end
     app.mail:Refresh()

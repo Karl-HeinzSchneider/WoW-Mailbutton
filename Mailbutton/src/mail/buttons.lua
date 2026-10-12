@@ -1,5 +1,5 @@
 local _, app = ...
-local mail = { page = 1, buttons = {} }
+local mail = { page = 1, buttons = {}, query = "" }
 app.mail = mail
 local PAGE_SIZE = 8
 local BUTTON_HEIGHT = 24
@@ -160,7 +160,7 @@ function mail:Create()
         return
     end
     local panel = CreateFrame("Frame", nil, parent)
-    panel:SetSize(MINIMUM_WIDTH + 36, 350)
+    panel:SetSize(MINIMUM_WIDTH + 36, 440)
     panel:SetPoint("TOPLEFT", parent, "TOPRIGHT", 5, 0)
     panel:SetClampedToScreen(true)
     panel:SetScript("OnUpdate", function()
@@ -218,6 +218,39 @@ function mail:Create()
         self.page = self.page + 1
         self:Refresh()
     end)
+    self.summary = panel:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    self.summary:SetPoint("TOPLEFT", 0, -352)
+    self.undo = button(panel, "Undo", 70, 76, -320, function()
+        app.recipients:Undo()
+    end)
+    self.searchLabel = panel:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    self.searchLabel:SetPoint("TOPLEFT", 0, -376)
+    self.searchLabel:SetText("Search recipients")
+    self.search = CreateFrame("EditBox", nil, panel)
+    self.search:SetSize(MINIMUM_WIDTH, 24)
+    self.search:SetPoint("TOPLEFT", 0, -394)
+    self.search:SetFontObject(GameFontHighlight)
+    self.search:SetTextInsets(6, 6, 0, 0)
+    self.search:SetAutoFocus(false)
+    local background = self.search:CreateTexture(nil, "BACKGROUND")
+    background:SetAllPoints()
+    background:SetTexture("Interface\\Buttons\\WHITE8X8")
+    background:SetVertexColor(0.2, 0.2, 0.2, 1)
+    self.search:SetScript("OnTextChanged", function(edit)
+        self.query = edit:GetText() or ""
+        self.page = 1
+        self:Refresh()
+    end)
+    self.search:SetScript("OnEscapePressed", function(edit)
+        edit:SetText("")
+        edit:ClearFocus()
+    end)
+    self.search:SetScript("OnEnterPressed", function(edit)
+        edit:ClearFocus()
+    end)
+    self.search:SetScript("OnHide", function(edit)
+        edit:ClearFocus()
+    end)
 end
 
 function mail:Refresh()
@@ -229,6 +262,7 @@ function mail:Refresh()
         return
     end
     local names = app.recipients:List()
+    local total = #names
     -- Measure every saved recipient, so changing pages cannot change column width.
     local width = MINIMUM_WIDTH
     self.measurement:SetText("Clear")
@@ -243,8 +277,32 @@ function mail:Refresh()
     for _, row in ipairs(self.buttons) do
         row:SetWidth(width)
     end
+    self.search:SetWidth(width)
+    local showSearch = total > PAGE_SIZE or self.query ~= ""
+    self.search:SetShown(showSearch)
+    self.searchLabel:SetShown(showSearch)
+    if self.query ~= "" then
+        local matches = {}
+        for _, name in ipairs(names) do
+            if name:lower():find(self.query:lower(), 1, true) then
+                matches[#matches + 1] = name
+            end
+        end
+        names = matches
+    end
     local pages = math.max(1, math.ceil(#names / PAGE_SIZE))
     self.page = math.max(1, math.min(self.page, pages))
+    self.summary:SetText(
+        "Page "
+            .. self.page
+            .. "/"
+            .. pages
+            .. " · "
+            .. (self.query ~= "" and (#names .. "/") or "")
+            .. total
+            .. " recipients"
+    )
+    self.undo:SetEnabled(app.recipients.undoNames ~= nil)
     for index, row in ipairs(self.buttons) do
         row:GetScript("OnLeave")(row)
         local name = names[(self.page - 1) * PAGE_SIZE + index]
