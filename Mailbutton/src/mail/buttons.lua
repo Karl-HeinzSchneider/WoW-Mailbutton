@@ -180,7 +180,7 @@ function mail:Create()
 end
 
 function mail:Refresh()
-    if not app.db then
+    if self.suspended or not app.db then
         return
     end
     self:Create()

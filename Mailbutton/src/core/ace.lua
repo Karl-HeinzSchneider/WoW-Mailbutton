@@ -20,6 +20,7 @@ function addon:OnInitialize()
 end
 
 function addon:OnEnable()
+    app.mail.suspended = false
     self:RegisterEvent("ADDON_LOADED", "RefreshMail")
     self:RegisterEvent("MAIL_SHOW", "RefreshMail")
     self:RegisterEvent("MAIL_CLOSED", function()
@@ -35,6 +36,7 @@ function addon:RefreshMail()
 end
 
 function addon:OnDisable()
+    app.mail.suspended = true
     app.mail:Hide()
 end
 
