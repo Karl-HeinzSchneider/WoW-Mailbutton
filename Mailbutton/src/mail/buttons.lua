@@ -2,13 +2,17 @@ local _, app = ...
 local mail = { page = 1, buttons = {} }
 app.mail = mail
 local PAGE_SIZE = 8
+local BUTTON_HEIGHT = 24
+local CONTROL_WIDTH = 40
+local CONTROL_GAP = 6
+local MINIMUM_WIDTH = CONTROL_WIDTH * 3 + CONTROL_GAP * 2
 
 local function button(parent, text, width, x, y, click)
     local frame = CreateFrame("Button", nil, parent)
-    frame:SetSize(width, 22)
+    frame:SetSize(width, BUTTON_HEIGHT)
     frame:SetPoint("TOPLEFT", parent, "TOPLEFT", x, y)
     -- Blizzard's panel art is three-sliced: fixed 12px caps, stretchable middle.
-    -- Keep its native 22px height so corners are not distorted in either direction.
+    -- Fixed-width end caps preserve the corners as recipient labels grow.
     local left = frame:CreateTexture(nil, "BACKGROUND")
     left:SetWidth(12)
     left:SetPoint("TOPLEFT")
@@ -130,28 +134,37 @@ function mail:Create()
         return
     end
     local panel = CreateFrame("Frame", nil, parent)
-    panel:SetSize(210, 350)
+    panel:SetSize(MINIMUM_WIDTH + 36, 350)
     panel:SetPoint("TOPLEFT", parent, "TOPRIGHT", 5, 0)
     self.panel = panel
-    button(panel, "Clear", 170, 0, 0, function()
+    self.measurement = panel:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    self.measurement:Hide()
+    self.clear = button(panel, "Clear", MINIMUM_WIDTH, 0, 0, function()
         self:SetRecipient("")
     end)
     for index = 1, PAGE_SIZE do
-        local row = button(panel, "", 170, 0, -index * 32, function(frame)
+        local row = button(panel, "", MINIMUM_WIDTH, 0, -index * 32, function(frame)
             self:SetRecipient(frame.recipient)
         end)
-        row.remove = button(row, "X", 30, 172, 0, function()
+        row.remove = button(row, "X", 30, 0, 0, function()
             app.recipients:Remove(row.recipient)
         end)
+        row.remove:ClearAllPoints()
+        row.remove:SetPoint("TOPLEFT", row, "TOPRIGHT", 2, 0)
         self.buttons[index] = row
     end
-    button(panel, "+", 32, 0, -288, function()
+    self.add = button(panel, "+", CONTROL_WIDTH, 0, -288, function()
         self:ShowDialog()
     end)
-    button(panel, "-", 32, 38, -288, function()
+    self.removeToggle = button(panel, "-", CONTROL_WIDTH, CONTROL_WIDTH + CONTROL_GAP, -288, function()
         app.db.factionrealm.showRemoveButtons = not app.db.factionrealm.showRemoveButtons
         self:Refresh()
     end)
+    self.options = button(panel, "", CONTROL_WIDTH, (CONTROL_WIDTH + CONTROL_GAP) * 2, -288, nil)
+    local icon = self.options:CreateTexture(nil, "ARTWORK")
+    icon:SetSize(16, 16)
+    icon:SetPoint("CENTER")
+    icon:SetTexture("Interface\\WorldMap\\GEAR_64GREY")
     self.previous = button(panel, "<", 32, 0, -320, function()
         self.page = self.page - 1
         self:Refresh()
@@ -171,6 +184,19 @@ function mail:Refresh()
         return
     end
     local names = app.recipients:List()
+    -- Measure every saved recipient, so changing pages cannot change column width.
+    local width = MINIMUM_WIDTH
+    self.measurement:SetText("Clear")
+    width = math.max(width, math.ceil(self.measurement:GetStringWidth()) + 24)
+    for _, name in ipairs(names) do
+        self.measurement:SetText(name)
+        width = math.max(width, math.ceil(self.measurement:GetStringWidth()) + 24)
+    end
+    self.clear:SetWidth(width)
+    self.panel:SetWidth(width + 36)
+    for _, row in ipairs(self.buttons) do
+        row:SetWidth(width)
+    end
     local pages = math.max(1, math.ceil(#names / PAGE_SIZE))
     self.page = math.max(1, math.min(self.page, pages))
     for index, row in ipairs(self.buttons) do

@@ -57,6 +57,15 @@ end
 function methods:SetScript(event, callback)
     self[event] = callback
 end
+function methods:SetSize(width, height)
+    self.width, self.height = width, height
+end
+function methods:SetWidth(width)
+    self.width = width
+end
+function methods:GetStringWidth()
+    return #(self.text or "") * 7
+end
 local frame
 function methods:CreateFontString()
     return frame()
@@ -111,4 +120,18 @@ assert(app.recipients:Add("Peter Maier"))
 app.mail:SetRecipient("Peter Maier")
 assert(SendMailNameEditBox.text == "Peter Maier")
 assert(app.recipients:Remove("peter maier"))
-print("Recipient migration, full names and deferred mail UI tests passed")
+-- Shared name column grows and shrinks; the three footer controls stay fixed.
+assert(app.mail.clear.width == 132 and app.mail.clear.height == 24)
+assert(app.mail.add.width == 40 and app.mail.removeToggle.width == 40 and app.mail.options.width == 40)
+assert(not rawget(app.mail.options, "OnClick"))
+local longName = "An exceptionally long Forever recipient"
+assert(app.recipients:Add(longName))
+local expandedWidth = #longName * 7 + 24
+assert(app.mail.clear.width == expandedWidth)
+for _, recipientButton in ipairs(app.mail.buttons) do
+    assert(recipientButton.width == expandedWidth and recipientButton.height == 24)
+end
+assert(app.mail.add.width == 40 and app.mail.removeToggle.width == 40 and app.mail.options.width == 40)
+assert(app.recipients:Remove(longName))
+assert(app.mail.clear.width == 132)
+print("Recipient and responsive button layout tests passed")
