@@ -151,7 +151,11 @@ function methods:SetSize(width, height)
     self.width, self.height = width, height
 end
 function methods:SetWidth(width)
+    local changed = self.width ~= width
     self.width = width
+    if changed and self.OnSizeChanged then
+        self.OnSizeChanged(self, width, self.height)
+    end
 end
 function methods:GetWidth()
     return rawget(self, "width") or 1920
@@ -161,6 +165,25 @@ function methods:GetRight()
 end
 function methods:GetEffectiveScale()
     return rawget(self, "scale") or 1
+end
+function methods:GetParent()
+    return self.parent
+end
+function methods:SetScale(scale)
+    self.scale = scale
+end
+function methods:StopMovingOrSizing() end
+function methods:RegisterEvent(event)
+    self.events = self.events or {}
+    self.events[event] = true
+end
+hooksecurefunc = function(object, method, callback)
+    local original = object[method]
+    assert(type(original) == "function")
+    object[method] = function(...)
+        original(...)
+        callback(...)
+    end
 end
 function methods:GetScript(event)
     return self[event]
@@ -303,8 +326,8 @@ local supported, unsupported = pcall(function()
     frame():SetTexure("typo")
 end)
 assert(not supported and unsupported:find("Unsupported frame method: SetTexure", 1, true))
-SendMailFrame = frame()
 UIParent = frame()
+SendMailFrame = frame("Frame", UIParent)
 GameTooltip = frame()
 SendMailNameEditBox = frame()
 app.mail:Refresh()
@@ -378,15 +401,37 @@ assert(not GameTooltip.shown)
 clippedRow.OnClick(clippedRow)
 assert(SendMailNameEditBox.text == longName)
 SendMailFrame.right = 1800
-app.mail.panel.OnUpdate()
+SendMailFrame:SetPoint("TOPLEFT", UIParent, "TOPLEFT", 1800, 0)
 assert(app.mail.panel.anchor[1] == "TOPRIGHT" and app.mail.panel.anchor[3] == "TOPLEFT")
 SendMailFrame.right = 500
-app.mail.panel.OnUpdate()
+SendMailFrame:StopMovingOrSizing()
 assert(app.mail.panel.anchor[1] == "TOPLEFT")
-SendMailFrame.scale = 4
-app.mail.panel.OnUpdate()
+SendMailFrame:SetScale(4)
 assert(app.mail.panel.anchor[1] == "TOPRIGHT")
-SendMailFrame.scale = 1
+SendMailFrame:SetScale(1)
+assert(app.mail.panel:GetScript("OnUpdate") == nil)
+assert(app.mail.panel.events.DISPLAY_SIZE_CHANGED and app.mail.panel.events.UI_SCALE_CHANGED)
+local originalPosition = app.mail.Position
+local positionChecks = 0
+app.mail.Position = function(self)
+    positionChecks = positionChecks + 1
+    originalPosition(self)
+end
+UIParent.width = 600
+app.mail.panel.OnEvent(app.mail.panel, "DISPLAY_SIZE_CHANGED")
+assert(positionChecks == 1 and app.mail.side == "left")
+UIParent.width = 1920
+app.mail.panel.OnEvent(app.mail.panel, "UI_SCALE_CHANGED")
+assert(positionChecks == 2 and app.mail.side == "right")
+app.mail.panel.OnSizeChanged(app.mail.panel)
+assert(positionChecks == 3)
+app.mail:Refresh()
+assert(positionChecks == 3, "unchanged recipients must not recheck positioning")
+UIParent:SetScale(2)
+assert(positionChecks == 4)
+UIParent:SetScale(1)
+assert(positionChecks == 5)
+app.mail.Position = originalPosition
 assert(app.mail.add.width == 40 and app.mail.removeToggle.width == 40 and app.mail.options.width == 40)
 assert(app.recipients:Remove(longName))
 assert(app.mail.clear.width == 132)
