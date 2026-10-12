@@ -1,4 +1,5 @@
-# Visual Studio Code
-.vscode/*
-.vs/*
-.history/*
+node_modules/
+.cache/
+dist/
+.release/
+/worktree-refactor/

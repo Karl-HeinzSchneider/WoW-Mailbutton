@@ -1,26 +1,25 @@
 # Mailbutton
- 
-Small World of Warcraft (classic) Addon to add Buttons to the Mailbox to speed up sending Mail - just click one of the buttons and the name will be set as mail recipient!
 
-View on Curseforge: https://www.curseforge.com/wow/addons/mailbutton
+Saved recipient shortcuts beside the send-mail form. Click a name to fill the recipient,
+Clear to clear it, + to add a character, and - to show removal buttons. More than eight
+recipients are accessible with the page arrows. Mailbutton never sends mail automatically.
 
-## Usage:
+Commands: `/mb`, `/mailbutton`, `/mb add Name-Realm`, `/mb remove Name-Realm`, `/mb list`,
+`/mbadd Name`, `/mbremove Name`.
 
-### Dialogue
-* Open Mailbox >> Send Mail
-* Use "+" and "-" Button to Add/Remove Mailbuttons (opens dialogue popup)
-* Press Mailbutton to set mail recipient to corresponding charactername
-* Press Clear to clear mail recipient
+Install the `Mailbutton/` directory inside `Interface/AddOns`. The repository root is tooling.
+Existing `MailbuttonDB` remains compatible: recipients are stored as name-to-true entries in
+AceDB's faction/realm scope. Names retain their spelling, including accented characters.
 
-### Command Line:
-* type '/mb' to show command list
-* type '/mbadd *charactername*' to add Mailbutton for *charactername*
-* type '/mbremove *charactername*' to remove Mailbutton for *charactername*
+Targets: Forever (16001), Retail, progression Classic, Anniversary and Era. The exported
+Classic UI uses SendMailFrame and SendMailNameEditBox; creation waits until those exist.
+The retail export provided is incomplete, so the mail API was also checked against the
+[current UI source](https://github.com/Gethe/wow-ui-source/blob/live/Interface/AddOns/Blizzard_MailFrame/MailFrame.lua).
+Interface numbers must be refreshed as clients update; enable out-of-date addons if necessary.
 
-## Example
-![](<Screenshots/2022-11-29%2023_40_45-Window.png>)
-![](<Screenshots/2022-11-29%2023_41_13-Window.png>)
-![](<Screenshots/2022-11-29%2023_41_34-Window.png>)
+Development: `npm install`, `npm run format`, `npm run check`, `npm run package:addons`.
+Link a client with `npm run dev:link -- "<WoW>/Interface/AddOns"`.
 
-## Compatibility
-Developed for default Blizzard UI, but should work on any UI.
+Manual validation still required on each client: login with existing saved data, open mailbox,
+switch tabs, add/select/clear/delete names, page through nine recipients, close/reopen mailbox,
+reload, and verify faction/realm isolation and coexistence with other mail addons.
