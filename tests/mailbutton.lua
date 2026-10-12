@@ -123,7 +123,14 @@ assert(app.recipients:Remove("peter maier"))
 -- Shared name column grows and shrinks; the three footer controls stay fixed.
 assert(app.mail.clear.width == 132 and app.mail.clear.height == 24)
 assert(app.mail.add.width == 40 and app.mail.removeToggle.width == 40 and app.mail.options.width == 40)
-assert(not rawget(app.mail.options, "OnClick"))
+local opened = false
+app.options = {
+    Open = function()
+        opened = true
+    end,
+}
+app.mail.options.OnClick()
+assert(opened)
 local longName = "An exceptionally long Forever recipient"
 assert(app.recipients:Add(longName))
 local expandedWidth = #longName * 7 + 24
@@ -135,3 +142,52 @@ assert(app.mail.add.width == 40 and app.mail.removeToggle.width == 40 and app.ma
 assert(app.recipients:Remove(longName))
 assert(app.mail.clear.width == 132)
 print("Recipient and responsive button layout tests passed")
+
+assert(app.recipients:Import(" Peter Maier\r\nAlt-Realm\nalT-realm\nZímtschnecke\n", true))
+assert(#app.recipients:List() == 3 and db.nameTable["Peter Maier"])
+local exported = app.recipients:Export()
+assert(not app.recipients:Import("Good Name\n|Hbad", true))
+assert(app.recipients:Export() == exported)
+assert(not app.recipients:Import("Bad\tName", false))
+assert(app.recipients:Import("Another Name\nalt-realm", false))
+assert(#app.recipients:List() == 4 and db.nameTable["Alt-Realm"])
+assert(app.recipients:Import(exported, true))
+assert(app.recipients:Export() == exported)
+assert(not app.recipients:Import("", false))
+assert(app.recipients:Import("", true))
+assert(#app.recipients:List() == 0)
+load("Mailbutton/src/options.lua")
+local registered, openedCategory
+Settings = {
+    RegisterCanvasLayoutCategory = function(panel, name)
+        registered = panel
+        assert(name == "Mailbutton")
+        return {
+            GetID = function()
+                return 42
+            end,
+        }
+    end,
+    RegisterAddOnCategory = function(category)
+        assert(category:GetID() == 42)
+    end,
+    OpenToCategory = function(id)
+        openedCategory = id
+    end,
+}
+app.options:Register()
+app.options:Open()
+assert(registered == app.options.panel and openedCategory == 42)
+app.options.panel = nil
+app.options.category = nil
+Settings = nil
+InterfaceOptions_AddCategory = function(panel)
+    registered = panel
+end
+InterfaceOptionsFrame_OpenToCategory = function(panel)
+    openedCategory = panel
+end
+app.options:Register()
+app.options:Open()
+assert(registered == app.options.panel and openedCategory == registered)
+print("Import/export and settings registration tests passed")

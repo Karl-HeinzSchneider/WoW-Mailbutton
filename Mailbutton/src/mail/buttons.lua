@@ -67,6 +67,8 @@ local function button(parent, text, width, x, y, click)
     return frame
 end
 
+app.CreateButton = button
+
 function mail:SetRecipient(name)
     local edit = _G.SendMailNameEditBox
     if edit then
@@ -160,7 +162,9 @@ function mail:Create()
         app.db.factionrealm.showRemoveButtons = not app.db.factionrealm.showRemoveButtons
         self:Refresh()
     end)
-    self.options = button(panel, "", CONTROL_WIDTH, (CONTROL_WIDTH + CONTROL_GAP) * 2, -288, nil)
+    self.options = button(panel, "", CONTROL_WIDTH, (CONTROL_WIDTH + CONTROL_GAP) * 2, -288, function()
+        app.options:Open()
+    end)
     local icon = self.options:CreateTexture(nil, "ARTWORK")
     icon:SetSize(16, 16)
     icon:SetPoint("CENTER")

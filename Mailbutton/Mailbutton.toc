@@ -17,4 +17,5 @@ src\core\db.lua
 src\core\ace.lua
 src\mail\recipients.lua
 src\mail\buttons.lua
+src\options.lua
 Mailbutton.lua

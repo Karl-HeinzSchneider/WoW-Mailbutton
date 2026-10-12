@@ -8,6 +8,7 @@ function addon:OnInitialize()
     self.db = app.db
     app.NormalizeRecipients(app.db.factionrealm)
     app.logger:setLevel(app.db.profile.logLevel)
+    app.options:Register()
     self:RegisterChatCommand("mailbutton", "OnSlashCommand")
     self:RegisterChatCommand("mb", "OnSlashCommand")
     self:RegisterChatCommand("mbadd", function(input)
@@ -50,6 +51,8 @@ function addon:OnSlashCommand(input)
         if app.logger:setLevel(name) then
             app.db.profile.logLevel = app.logger:getLevelName()
         end
+    elseif command == "" or command == "options" then
+        app.options:Open()
     else
         app.logger:chat("/mb add <recipient>, /mb remove <recipient>, /mb list. Also: /mbadd, /mbremove.")
     end

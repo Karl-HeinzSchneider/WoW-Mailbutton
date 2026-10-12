@@ -25,3 +25,9 @@ switch tabs, add/select/clear/delete names, page through nine recipients, close/
 reload, and verify faction/realm isolation and coexistence with other mail addons.
 
 Forever recipients may include first and last names: `/mb add Peter Maier` or `/mbadd Peter Maier`.
+
+Open Blizzard Settings > AddOns > Mailbutton, click the mailbox gear, or use `/mb options`.
+Edit the list with one full recipient name per line and click Save to replace the buttons
+(an empty list clears them). Export loads the saved list for Ctrl+A / Ctrl+C; paste a list
+with Ctrl+V and click Import to add names while keeping existing buttons. Invalid lists
+leave saved names unchanged. Reopening the panel reloads saved names and discards unsaved edits.
