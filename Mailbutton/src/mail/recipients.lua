@@ -2,6 +2,46 @@ local _, app = ...
 local recipients = {}
 app.recipients = recipients
 
+function recipients:Export()
+    return table.concat(self:List(), "\n")
+end
+
+-- Validate the whole paste before changing saved data. Spaces belong to names.
+function recipients:Import(text, replace)
+    if type(text) ~= "string" then
+        return false, "Paste a list of recipients first."
+    end
+    local names, seen = {}, {}
+    for line in (text .. "\n"):gmatch("([^\n]*)\n") do
+        local name = line:match("^%s*(.-)%s*$")
+        if name ~= "" then
+            if name:find("[|%c]") then
+                return false, "Invalid recipient: use one name per line without links or tabs."
+            end
+            if not seen[name:lower()] then
+                names[#names + 1] = name
+                seen[name:lower()] = true
+            end
+        end
+    end
+    if #names == 0 and not replace then
+        return false, "Paste at least one recipient to import."
+    end
+    local saved = app.db.factionrealm.nameTable
+    if replace then
+        for name in pairs(saved) do
+            saved[name] = nil
+        end
+    end
+    for _, name in ipairs(names) do
+        if not self:Find(name) then
+            saved[name] = true
+        end
+    end
+    app.mail:Refresh()
+    return true
+end
+
 function recipients:List()
     local names = {}
     for name, enabled in pairs(app.db.factionrealm.nameTable) do
