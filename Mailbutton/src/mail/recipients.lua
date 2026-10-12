@@ -27,24 +27,47 @@ function recipients:Undo()
 end
 
 function recipients:IsDoubleNameClient()
+    -- Current Forever clients have their own project ID; Retail is also mainline.
+    if WOW_PROJECT_CAMELOT ~= nil and WOW_PROJECT_ID == WOW_PROJECT_CAMELOT then
+        return true
+    end
+    -- Earlier Forever builds reported mainline. Accept patches in the 1.60.x series.
     if type(GetBuildInfo) ~= "function" then
         return false
     end
     local _, _, _, interface = GetBuildInfo()
-    return tonumber(interface) == 16001
+    interface = tonumber(interface)
+    return interface ~= nil and interface >= 16000 and interface < 16100
 end
 
 function recipients:Example()
     return self:IsDoubleNameClient() and "Sylvanas Windrunner" or "Sylvanas"
 end
 
+-- Count UTF-8 characters rather than bytes; preserve the user's spelling.
+-- These are input guardrails, not a replacement for the server's name rules.
+local function usablePart(part, limit)
+    if not part or not part:find("[%w\128-\255]") then
+        return false
+    end
+    local _, length = part:gsub("[^\128-\191]", "")
+    return length <= limit
+end
+
 function recipients:Validate(name)
     local valid = type(name) == "string" and not name:find("[|%c]")
     if valid then
         if self:IsDoubleNameClient() then
-            valid = name:match("^%S+ %S+$") ~= nil
+            local first, last = name:match("^(%S+) (%S+)$")
+            -- Forever supports longer first/last names than standard clients.
+            valid = usablePart(first, 32) and usablePart(last, 32)
         else
-            valid = name:match("^%S+$") ~= nil
+            local character, realm = name:match("^([^%s%-]+)%-(%S+)$")
+            if character then
+                valid = usablePart(character, 12) and usablePart(realm, 64)
+            else
+                valid = name:match("^%S+$") ~= nil and not name:find("-", 1, true) and usablePart(name, 12)
+            end
         end
     end
     if not valid then
@@ -53,7 +76,10 @@ function recipients:Validate(name)
                 .. (self:IsDoubleNameClient() and "a first and last name" or "a single name (optionally Name-Realm)")
                 .. ", e.g. "
                 .. self:Example()
-                .. "."
+                .. (
+                    self:IsDoubleNameClient() and " (up to 32 characters each)."
+                    or " (name up to 12, realm up to 64 characters)."
+                )
     end
     return true
 end
@@ -115,6 +141,8 @@ function recipients:List()
 end
 
 function recipients:Find(name)
+    -- Lua lower() only folds ASCII reliably. Do not transliterate or merge
+    -- accented case variants without a consistent cross-client Unicode API.
     for saved in pairs(app.db.factionrealm.nameTable) do
         if saved:lower() == name:lower() then
             return saved

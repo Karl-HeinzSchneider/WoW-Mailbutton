@@ -1,6 +1,6 @@
 local _, app = ...
 app.dbDefaults = {
-    profile = { logLevel = "INFO", bestnumber = 42 },
+    profile = { logLevel = "INFO" },
     factionrealm = { showRemoveButtons = false, nameTable = {} },
 }
 

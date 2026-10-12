@@ -15,6 +15,20 @@ app.mail = {
     end,
 }
 load("Mailbutton/src/mail/recipients.lua")
+assert(not app.recipients:Validate("!!!"))
+assert(not app.recipients:Validate("Name-!!!"))
+assert(not app.recipients:Validate("!!!-Realm"))
+assert(not app.recipients:Validate("Name-"))
+assert(app.recipients:Validate(string.rep("é", 12)))
+assert(not app.recipients:Validate(string.rep("é", 13)))
+assert(app.recipients:Validate("Zímtschnecke-" .. string.rep("é", 64)))
+assert(not app.recipients:Validate("Name-" .. string.rep("é", 65)))
+-- ASCII case folding stays useful without collapsing accented spellings.
+assert(app.recipients:Add("Élodie"))
+assert(app.recipients:Add("élodie"))
+assert(db.nameTable["Élodie"] and db.nameTable["élodie"])
+assert(app.recipients:Remove("ÉLODIE"))
+assert(app.recipients:Remove("élodie"))
 assert(app.recipients:Add("  Alt-Realm  "))
 assert(app.recipients:Add("alice"))
 assert(#app.recipients:List() == 4)
@@ -22,6 +36,11 @@ GetBuildInfo = function()
     return "", "", "", 16001
 end
 assert(app.recipients:Example() == "Sylvanas Windrunner")
+assert(not app.recipients:Validate("!!! ???"))
+assert(not app.recipients:Validate("Sylvanas !!!"))
+assert(app.recipients:Validate(string.rep("é", 32) .. " " .. string.rep("a", 32)))
+assert(not app.recipients:Validate(string.rep("é", 33) .. " Windrunner"))
+assert(not app.recipients:Validate("Sylvanas " .. string.rep("a", 33)))
 assert(not app.recipients:Add("Sylvanas"))
 assert(not app.recipients:Add("Sylvanas Windrunner Extra"))
 assert(app.recipients:Add("  Sylvanas Windrunner  "))
@@ -37,6 +56,47 @@ GetBuildInfo = function()
 end
 assert(app.recipients:Example() == "Sylvanas")
 assert(not app.recipients:Add("Sylvanas Windrunner"))
+-- Project identity survives interface changes; the legacy fallback accepts patches.
+WOW_PROJECT_CAMELOT = 18
+WOW_PROJECT_ID = WOW_PROJECT_CAMELOT
+assert(app.recipients:IsDoubleNameClient())
+assert(app.recipients:Validate("Sylvanas Windrunner"))
+assert(not app.recipients:Validate("Sylvanas"))
+GetBuildInfo = nil
+assert(app.recipients:IsDoubleNameClient())
+WOW_PROJECT_ID = 1
+assert(not app.recipients:IsDoubleNameClient())
+for _, interface in ipairs({ 16000, 16001, 16002, 16099, "16002" }) do
+    GetBuildInfo = function()
+        return "", "", "", interface
+    end
+    assert(app.recipients:IsDoubleNameClient())
+    assert(app.recipients:Validate("Sylvanas Windrunner"))
+    assert(not app.recipients:Validate("Sylvanas"))
+end
+for _, interface in ipairs({ 15999, 16100, 11508, 20505, 50502, 120001, "invalid" }) do
+    GetBuildInfo = function()
+        return "", "", "", interface
+    end
+    assert(not app.recipients:IsDoubleNameClient())
+    assert(app.recipients:Validate("Sylvanas"))
+    assert(not app.recipients:Validate("Sylvanas Windrunner"))
+end
+WOW_PROJECT_CAMELOT = nil
+WOW_PROJECT_ID = nil
+GetBuildInfo = nil
+assert(not app.recipients:IsDoubleNameClient())
+GetBuildInfo = function()
+    return "", "", "", nil
+end
+assert(not app.recipients:IsDoubleNameClient())
+GetBuildInfo = function()
+    return "", "", "", 16002
+end
+assert(app.recipients:IsDoubleNameClient())
+GetBuildInfo = function()
+    return "", "", "", 120000
+end
 for i = 1, 12 do
     assert(app.recipients:Add("Alt" .. i))
 end
@@ -77,6 +137,39 @@ end
 function methods:SetWidth(width)
     self.width = width
 end
+function methods:GetWidth()
+    return rawget(self, "width") or 1920
+end
+function methods:GetRight()
+    return rawget(self, "right") or 500
+end
+function methods:GetEffectiveScale()
+    return rawget(self, "scale") or 1
+end
+function methods:GetScript(event)
+    return self[event]
+end
+function methods:HookScript(event, callback)
+    local original = self[event]
+    self[event] = function(...)
+        if original then
+            original(...)
+        end
+        callback(...)
+    end
+end
+function methods:SetClampedToScreen(value)
+    self.clamped = value
+end
+function methods:SetWordWrap(value)
+    self.wordWrap = value
+end
+function methods:SetOwner(owner)
+    self.owner = owner
+end
+function methods:IsOwned(owner)
+    return rawget(self, "owner") == owner
+end
 function methods:GetStringWidth()
     return #(self.text or "") * 7
 end
@@ -116,6 +209,8 @@ CreateFrame = function()
     return frame()
 end
 SendMailFrame = frame()
+UIParent = frame()
+GameTooltip = frame()
 SendMailNameEditBox = frame()
 app.mail:Refresh()
 assert(app.mail.panel and app.mail.buttons[8].recipient)
@@ -166,11 +261,37 @@ app.mail.options.OnClick()
 assert(opened)
 local longName = "AnexceptionallylongForever Recipient"
 assert(app.recipients:Add(longName))
-local expandedWidth = #longName * 7 + 24
+local expandedWidth = 240
 assert(app.mail.clear.width == expandedWidth)
 for _, recipientButton in ipairs(app.mail.buttons) do
     assert(recipientButton.width == expandedWidth and recipientButton.height == 24)
 end
+assert(app.mail.panel.clamped and app.mail.buttons[1].label.wordWrap == false)
+app.mail.page = 2
+app.mail:Refresh()
+local clippedRow
+for _, recipientButton in ipairs(app.mail.buttons) do
+    if recipientButton.recipient == longName then
+        clippedRow = recipientButton
+    end
+end
+assert(clippedRow and clippedRow.clipped)
+clippedRow.OnEnter(clippedRow)
+assert(GameTooltip.shown and GameTooltip.text == longName)
+clippedRow.OnLeave(clippedRow)
+assert(not GameTooltip.shown)
+clippedRow.OnClick(clippedRow)
+assert(SendMailNameEditBox.text == longName)
+SendMailFrame.right = 1800
+app.mail.panel.OnUpdate()
+assert(app.mail.panel.anchor[1] == "TOPRIGHT" and app.mail.panel.anchor[3] == "TOPLEFT")
+SendMailFrame.right = 500
+app.mail.panel.OnUpdate()
+assert(app.mail.panel.anchor[1] == "TOPLEFT")
+SendMailFrame.scale = 4
+app.mail.panel.OnUpdate()
+assert(app.mail.panel.anchor[1] == "TOPRIGHT")
+SendMailFrame.scale = 1
 assert(app.mail.add.width == 40 and app.mail.removeToggle.width == 40 and app.mail.options.width == 40)
 assert(app.recipients:Remove(longName))
 assert(app.mail.clear.width == 132)
@@ -179,6 +300,8 @@ print("Recipient and responsive button layout tests passed")
 assert(app.recipients:Import(" Sylvanas Windrunner\r\nAlt Realm\nalT realm\nZímtschnecke Windrunner\n", true))
 assert(#app.recipients:List() == 3 and db.nameTable["Sylvanas Windrunner"])
 local exported = app.recipients:Export()
+assert(not app.recipients:Import("Good Name\n!!! ???", true))
+assert(app.recipients:Export() == exported)
 assert(not app.recipients:Import("Good Name\n|Hbad", true))
 assert(app.recipients:Export() == exported)
 assert(not app.recipients:Import("Bad\tName", false))

@@ -24,6 +24,8 @@ Manual validation still required on each client: login with existing saved data,
 switch tabs, add/select/clear/delete names, page through nine recipients, close/reopen mailbox,
 reload, and verify faction/realm isolation and coexistence with other mail addons.
 
+Forever is detected using Blizzard's `WOW_PROJECT_ID == WOW_PROJECT_CAMELOT` when the Camelot constant exists. Earlier builds that report the Retail project ID use the `16000`–`16099` interface range (1.60.x) as a fallback, so patch updates retain two-part name validation.
+
 Forever recipients require exactly a first and last name: `/mb add Sylvanas Windrunner` or `/mbadd Sylvanas Windrunner`. Other clients accept a single name such as `Sylvanas`, optionally with a `-Realm` suffix. The same validation applies to Save and Import in the options panel.
 
 Open Blizzard Settings > AddOns > Mailbutton, click the mailbox gear, or use `/mb options`.
