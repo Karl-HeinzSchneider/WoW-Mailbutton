@@ -51,6 +51,6 @@ function addon:OnSlashCommand(input)
             app.db.profile.logLevel = app.logger:getLevelName()
         end
     else
-        app.logger:chat("/mb add <Name[-Realm]>, /mb remove <Name[-Realm]>, /mb list. Also: /mbadd, /mbremove.")
+        app.logger:chat("/mb add <recipient>, /mb remove <recipient>, /mb list. Also: /mbadd, /mbremove.")
     end
 end

@@ -23,3 +23,5 @@ Link a client with `npm run dev:link -- "<WoW>/Interface/AddOns"`.
 Manual validation still required on each client: login with existing saved data, open mailbox,
 switch tabs, add/select/clear/delete names, page through nine recipients, close/reopen mailbox,
 reload, and verify faction/realm isolation and coexistence with other mail addons.
+
+Forever recipients may include first and last names: `/mb add Peter Maier` or `/mbadd Peter Maier`.

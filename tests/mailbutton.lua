@@ -18,7 +18,11 @@ load("Mailbutton/src/mail/recipients.lua")
 assert(app.recipients:Add("  Alt-Realm  "))
 assert(app.recipients:Add("alice"))
 assert(#app.recipients:List() == 4)
-assert(not app.recipients:Add("bad name"))
+assert(app.recipients:Add("  Peter Maier  "))
+assert(db.nameTable["Peter Maier"])
+assert(app.recipients:Add("peter maier"))
+assert(app.recipients:Remove(" PETER MAIER "))
+assert(not app.recipients:Add("Peter\tMaier"))
 assert(not app.recipients:Add("|Hlink"))
 assert(app.recipients:Remove(" ALICE "))
 assert(not db.nameTable.Alice)
@@ -53,7 +57,32 @@ end
 function methods:SetScript(event, callback)
     self[event] = callback
 end
-local function frame()
+local frame
+function methods:CreateFontString()
+    return frame()
+end
+function methods:CreateTexture()
+    return frame()
+end
+function methods:GetNormalTexture()
+    return frame()
+end
+function methods:GetPushedTexture()
+    return frame()
+end
+function methods:GetHighlightTexture()
+    return frame()
+end
+function methods:SetFontString(label)
+    self.label = label
+end
+function methods:SetPoint(...)
+    self.anchor = { ... }
+end
+function methods:SetJustifyH(value)
+    self.justifyH = value
+end
+frame = function()
     return setmetatable({}, {
         __index = function(_, key)
             return methods[key] or function() end
@@ -73,8 +102,13 @@ assert(app.mail.page == 2 and app.mail.previous.enabled and not app.mail.next.en
 local row = app.mail.buttons[1]
 row.OnClick(row)
 assert(SendMailNameEditBox.text == row.recipient)
+assert(row.label and row.label.justifyH == "CENTER")
 local removed = row.recipient
 row.remove.OnClick()
 assert(not db.nameTable[removed])
 assert(app.mail.buttons[6].shown and not app.mail.buttons[7].shown)
-print("Recipient migration and deferred mail UI tests passed")
+assert(app.recipients:Add("Peter Maier"))
+app.mail:SetRecipient("Peter Maier")
+assert(SendMailNameEditBox.text == "Peter Maier")
+assert(app.recipients:Remove("peter maier"))
+print("Recipient migration, full names and deferred mail UI tests passed")

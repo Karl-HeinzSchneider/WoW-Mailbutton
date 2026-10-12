@@ -23,8 +23,8 @@ end
 
 function recipients:Add(name)
     name = type(name) == "string" and name:match("^%s*(.-)%s*$") or ""
-    if name == "" or name:find("[%s|%c]") then
-        app.logger:chat("Enter a character name, optionally followed by -Realm (without spaces).")
+    if name == "" or name:find("[|%c]") then
+        app.logger:chat("Enter a mail recipient, e.g. Peter Maier on Forever or Name-Realm on other clients.")
         return false
     end
     -- Preserve UTF-8 spelling and realm capitalization instead of byte-wise title casing.
