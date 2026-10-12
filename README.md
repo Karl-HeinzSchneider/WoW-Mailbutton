@@ -24,7 +24,7 @@ Manual validation still required on each client: login with existing saved data,
 switch tabs, add/select/clear/delete names, page through nine recipients, close/reopen mailbox,
 reload, and verify faction/realm isolation and coexistence with other mail addons.
 
-Forever recipients may include first and last names: `/mb add Peter Maier` or `/mbadd Peter Maier`.
+Forever recipients require exactly a first and last name: `/mb add Sylvanas Windrunner` or `/mbadd Sylvanas Windrunner`. Other clients accept a single name such as `Sylvanas`, optionally with a `-Realm` suffix. The same validation applies to Save and Import in the options panel.
 
 Open Blizzard Settings > AddOns > Mailbutton, click the mailbox gear, or use `/mb options`.
 Edit the list with one full recipient name per line and click Save to replace the buttons
