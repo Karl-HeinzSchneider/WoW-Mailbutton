@@ -18,7 +18,11 @@ function options:Register()
     help:SetPoint("TOPRIGHT", -16, -48)
     help:SetJustifyH("LEFT")
     help:SetText(
-        "Recipient buttons for this faction and realm. One name per line.\nEdit, add or delete lines, then Save to replace your buttons.\nExport loads your saved list; use Ctrl+A / Ctrl+C to copy.\nPaste with Ctrl+V; Import adds names without removing existing buttons."
+        "Recipient buttons for this faction and realm. One recipient per line (e.g. "
+            .. app.recipients:Example()
+            .. ").\n"
+            .. (app.recipients:IsDoubleNameClient() and "Use exactly a first and last name.\n" or "Use a single name, optionally Name-Realm.\n")
+            .. "Edit, add or delete lines, then Save to replace your buttons.\nExport loads your saved list; use Ctrl+A / Ctrl+C to copy.\nPaste with Ctrl+V; Import adds names without removing existing buttons."
     )
     local scroll = CreateFrame("ScrollFrame", nil, panel)
     scroll:SetPoint("TOPLEFT", help, "BOTTOMLEFT", 0, -12)

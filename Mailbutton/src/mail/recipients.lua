@@ -2,6 +2,38 @@ local _, app = ...
 local recipients = {}
 app.recipients = recipients
 
+function recipients:IsDoubleNameClient()
+    if type(GetBuildInfo) ~= "function" then
+        return false
+    end
+    local _, _, _, interface = GetBuildInfo()
+    return tonumber(interface) == 16001
+end
+
+function recipients:Example()
+    return self:IsDoubleNameClient() and "Sylvanas Windrunner" or "Sylvanas"
+end
+
+function recipients:Validate(name)
+    local valid = type(name) == "string" and not name:find("[|%c]")
+    if valid then
+        if self:IsDoubleNameClient() then
+            valid = name:match("^%S+ %S+$") ~= nil
+        else
+            valid = name:match("^%S+$") ~= nil
+        end
+    end
+    if not valid then
+        return false,
+            "Enter "
+                .. (self:IsDoubleNameClient() and "a first and last name" or "a single name (optionally Name-Realm)")
+                .. ", e.g. "
+                .. self:Example()
+                .. "."
+    end
+    return true
+end
+
 function recipients:Export()
     return table.concat(self:List(), "\n")
 end
@@ -15,8 +47,9 @@ function recipients:Import(text, replace)
     for line in (text .. "\n"):gmatch("([^\n]*)\n") do
         local name = line:match("^%s*(.-)%s*$")
         if name ~= "" then
-            if name:find("[|%c]") then
-                return false, "Invalid recipient: use one name per line without links or tabs."
+            local valid, message = self:Validate(name)
+            if not valid then
+                return false, message
             end
             if not seen[name:lower()] then
                 names[#names + 1] = name
@@ -63,8 +96,9 @@ end
 
 function recipients:Add(name)
     name = type(name) == "string" and name:match("^%s*(.-)%s*$") or ""
-    if name == "" or name:find("[|%c]") then
-        app.logger:chat("Enter a mail recipient, e.g. Peter Maier on Forever or Name-Realm on other clients.")
+    local valid, message = self:Validate(name)
+    if not valid then
+        app.logger:chat(message)
         return false
     end
     -- Preserve UTF-8 spelling and realm capitalization instead of byte-wise title casing.

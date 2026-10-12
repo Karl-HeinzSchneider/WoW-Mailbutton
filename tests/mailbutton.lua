@@ -18,14 +18,25 @@ load("Mailbutton/src/mail/recipients.lua")
 assert(app.recipients:Add("  Alt-Realm  "))
 assert(app.recipients:Add("alice"))
 assert(#app.recipients:List() == 4)
-assert(app.recipients:Add("  Peter Maier  "))
-assert(db.nameTable["Peter Maier"])
-assert(app.recipients:Add("peter maier"))
-assert(app.recipients:Remove(" PETER MAIER "))
+GetBuildInfo = function()
+    return "", "", "", 16001
+end
+assert(app.recipients:Example() == "Sylvanas Windrunner")
+assert(not app.recipients:Add("Sylvanas"))
+assert(not app.recipients:Add("Sylvanas Windrunner Extra"))
+assert(app.recipients:Add("  Sylvanas Windrunner  "))
+assert(db.nameTable["Sylvanas Windrunner"])
+assert(app.recipients:Add("sylvanas windrunner"))
+assert(app.recipients:Remove(" SYLVANAS WINDRUNNER "))
 assert(not app.recipients:Add("Peter\tMaier"))
 assert(not app.recipients:Add("|Hlink"))
 assert(app.recipients:Remove(" ALICE "))
 assert(not db.nameTable.Alice)
+GetBuildInfo = function()
+    return "", "", "", 120000
+end
+assert(app.recipients:Example() == "Sylvanas")
+assert(not app.recipients:Add("Sylvanas Windrunner"))
 for i = 1, 12 do
     assert(app.recipients:Add("Alt" .. i))
 end
@@ -116,10 +127,13 @@ local removed = row.recipient
 row.remove.OnClick()
 assert(not db.nameTable[removed])
 assert(app.mail.buttons[6].shown and not app.mail.buttons[7].shown)
-assert(app.recipients:Add("Peter Maier"))
-app.mail:SetRecipient("Peter Maier")
-assert(SendMailNameEditBox.text == "Peter Maier")
-assert(app.recipients:Remove("peter maier"))
+GetBuildInfo = function()
+    return "", "", "", 16001
+end
+assert(app.recipients:Add("Sylvanas Windrunner"))
+app.mail:SetRecipient("Sylvanas Windrunner")
+assert(SendMailNameEditBox.text == "Sylvanas Windrunner")
+assert(app.recipients:Remove("sylvanas windrunner"))
 -- Shared name column grows and shrinks; the three footer controls stay fixed.
 assert(app.mail.clear.width == 132 and app.mail.clear.height == 24)
 assert(app.mail.add.width == 40 and app.mail.removeToggle.width == 40 and app.mail.options.width == 40)
@@ -131,7 +145,7 @@ app.options = {
 }
 app.mail.options.OnClick()
 assert(opened)
-local longName = "An exceptionally long Forever recipient"
+local longName = "AnexceptionallylongForever Recipient"
 assert(app.recipients:Add(longName))
 local expandedWidth = #longName * 7 + 24
 assert(app.mail.clear.width == expandedWidth)
@@ -143,19 +157,26 @@ assert(app.recipients:Remove(longName))
 assert(app.mail.clear.width == 132)
 print("Recipient and responsive button layout tests passed")
 
-assert(app.recipients:Import(" Peter Maier\r\nAlt-Realm\nalT-realm\nZímtschnecke\n", true))
-assert(#app.recipients:List() == 3 and db.nameTable["Peter Maier"])
+assert(app.recipients:Import(" Sylvanas Windrunner\r\nAlt Realm\nalT realm\nZímtschnecke Windrunner\n", true))
+assert(#app.recipients:List() == 3 and db.nameTable["Sylvanas Windrunner"])
 local exported = app.recipients:Export()
 assert(not app.recipients:Import("Good Name\n|Hbad", true))
 assert(app.recipients:Export() == exported)
 assert(not app.recipients:Import("Bad\tName", false))
-assert(app.recipients:Import("Another Name\nalt-realm", false))
-assert(#app.recipients:List() == 4 and db.nameTable["Alt-Realm"])
+assert(app.recipients:Import("Another Name\nalt realm", false))
+assert(#app.recipients:List() == 4 and db.nameTable["Alt Realm"])
 assert(app.recipients:Import(exported, true))
 assert(app.recipients:Export() == exported)
 assert(not app.recipients:Import("", false))
 assert(app.recipients:Import("", true))
 assert(#app.recipients:List() == 0)
+GetBuildInfo = function()
+    return "", "", "", 120000
+end
+assert(app.recipients:Import("Sylvanas\nAlt-Realm", true))
+local normalExport = app.recipients:Export()
+assert(not app.recipients:Import("Sylvanas Windrunner", true))
+assert(app.recipients:Export() == normalExport)
 load("Mailbutton/src/options.lua")
 local registered, openedCategory
 Settings = {
