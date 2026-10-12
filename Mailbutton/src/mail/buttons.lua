@@ -6,6 +6,7 @@ local BUTTON_HEIGHT = 24
 local CONTROL_WIDTH = 40
 local CONTROL_GAP = 6
 local MINIMUM_WIDTH = CONTROL_WIDTH * 3 + CONTROL_GAP * 2
+local MAXIMUM_WIDTH = 240
 
 local function button(parent, text, width, x, y, click)
     local frame = CreateFrame("Button", nil, parent)
@@ -58,6 +59,7 @@ local function button(parent, text, width, x, y, click)
     label:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -6, 2)
     label:SetJustifyH("CENTER")
     label:SetJustifyV("MIDDLE")
+    label:SetWordWrap(false)
     frame:SetFontString(label)
     frame:SetNormalFontObject(GameFontNormal)
     frame:SetHighlightFontObject(GameFontHighlight)
@@ -68,6 +70,27 @@ local function button(parent, text, width, x, y, click)
 end
 
 app.CreateButton = button
+
+function mail:Position()
+    local parent = _G.SendMailFrame
+    local right = parent:GetRight()
+    if not right then
+        return
+    end
+    -- Compare physical coordinates: the mailbox can have a different UI scale.
+    local fitsRight = (right + 5 + self.panel:GetWidth()) * parent:GetEffectiveScale()
+        <= UIParent:GetWidth() * UIParent:GetEffectiveScale()
+    local side = fitsRight and "right" or "left"
+    if self.side ~= side then
+        self.panel:ClearAllPoints()
+        if fitsRight then
+            self.panel:SetPoint("TOPLEFT", parent, "TOPRIGHT", 5, 0)
+        else
+            self.panel:SetPoint("TOPRIGHT", parent, "TOPLEFT", -5, 0)
+        end
+        self.side = side
+    end
+end
 
 function mail:SetRecipient(name)
     local edit = _G.SendMailNameEditBox
@@ -89,6 +112,7 @@ function mail:ShowDialog()
         dialog:SetSize(280, 130)
         dialog:SetPoint("TOPLEFT", self.panel, "TOPLEFT", 0, -35)
         dialog:SetFrameStrata("DIALOG")
+        dialog:SetClampedToScreen(true)
         local background = dialog:CreateTexture(nil, "BACKGROUND")
         background:SetAllPoints()
         background:SetTexture("Interface\\Buttons\\WHITE8X8")
@@ -138,6 +162,10 @@ function mail:Create()
     local panel = CreateFrame("Frame", nil, parent)
     panel:SetSize(MINIMUM_WIDTH + 36, 350)
     panel:SetPoint("TOPLEFT", parent, "TOPRIGHT", 5, 0)
+    panel:SetClampedToScreen(true)
+    panel:SetScript("OnUpdate", function()
+        self:Position()
+    end)
     self.panel = panel
     self.measurement = panel:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     self.measurement:Hide()
@@ -148,6 +176,19 @@ function mail:Create()
         local row = button(panel, "", MINIMUM_WIDTH, 0, -index * 32, function(frame)
             self:SetRecipient(frame.recipient)
         end)
+        row:SetScript("OnEnter", function(frame)
+            if frame.clipped and frame.recipient and GameTooltip then
+                GameTooltip:SetOwner(frame, "ANCHOR_RIGHT")
+                GameTooltip:SetText(frame.recipient)
+                GameTooltip:Show()
+            end
+        end)
+        row:SetScript("OnLeave", function(frame)
+            if GameTooltip and GameTooltip:IsOwned(frame) then
+                GameTooltip:Hide()
+            end
+        end)
+        row:HookScript("OnHide", row:GetScript("OnLeave"))
         row.remove = button(row, "X", 30, 0, 0, function()
             app.recipients:Remove(row.recipient)
         end)
@@ -196,6 +237,7 @@ function mail:Refresh()
         self.measurement:SetText(name)
         width = math.max(width, math.ceil(self.measurement:GetStringWidth()) + 24)
     end
+    width = math.min(width, MAXIMUM_WIDTH)
     self.clear:SetWidth(width)
     self.panel:SetWidth(width + 36)
     for _, row in ipairs(self.buttons) do
@@ -204,9 +246,12 @@ function mail:Refresh()
     local pages = math.max(1, math.ceil(#names / PAGE_SIZE))
     self.page = math.max(1, math.min(self.page, pages))
     for index, row in ipairs(self.buttons) do
+        row:GetScript("OnLeave")(row)
         local name = names[(self.page - 1) * PAGE_SIZE + index]
         row.recipient = name
         row:SetText(name or "")
+        self.measurement:SetText(name or "")
+        row.clipped = name ~= nil and self.measurement:GetStringWidth() > width - 12
         row:SetShown(name ~= nil)
         row.remove:SetShown(name ~= nil and app.db.factionrealm.showRemoveButtons)
     end
@@ -215,6 +260,7 @@ function mail:Refresh()
     self.previous:SetEnabled(self.page > 1)
     self.next:SetEnabled(self.page < pages)
     self.panel:Show()
+    self:Position()
 end
 
 function mail:Hide()
