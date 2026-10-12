@@ -56,6 +56,47 @@ GetBuildInfo = function()
 end
 assert(app.recipients:Example() == "Sylvanas")
 assert(not app.recipients:Add("Sylvanas Windrunner"))
+-- Project identity survives interface changes; the legacy fallback accepts patches.
+WOW_PROJECT_CAMELOT = 18
+WOW_PROJECT_ID = WOW_PROJECT_CAMELOT
+assert(app.recipients:IsDoubleNameClient())
+assert(app.recipients:Validate("Sylvanas Windrunner"))
+assert(not app.recipients:Validate("Sylvanas"))
+GetBuildInfo = nil
+assert(app.recipients:IsDoubleNameClient())
+WOW_PROJECT_ID = 1
+assert(not app.recipients:IsDoubleNameClient())
+for _, interface in ipairs({ 16000, 16001, 16002, 16099, "16002" }) do
+    GetBuildInfo = function()
+        return "", "", "", interface
+    end
+    assert(app.recipients:IsDoubleNameClient())
+    assert(app.recipients:Validate("Sylvanas Windrunner"))
+    assert(not app.recipients:Validate("Sylvanas"))
+end
+for _, interface in ipairs({ 15999, 16100, 11508, 20505, 50502, 120001, "invalid" }) do
+    GetBuildInfo = function()
+        return "", "", "", interface
+    end
+    assert(not app.recipients:IsDoubleNameClient())
+    assert(app.recipients:Validate("Sylvanas"))
+    assert(not app.recipients:Validate("Sylvanas Windrunner"))
+end
+WOW_PROJECT_CAMELOT = nil
+WOW_PROJECT_ID = nil
+GetBuildInfo = nil
+assert(not app.recipients:IsDoubleNameClient())
+GetBuildInfo = function()
+    return "", "", "", nil
+end
+assert(not app.recipients:IsDoubleNameClient())
+GetBuildInfo = function()
+    return "", "", "", 16002
+end
+assert(app.recipients:IsDoubleNameClient())
+GetBuildInfo = function()
+    return "", "", "", 120000
+end
 for i = 1, 12 do
     assert(app.recipients:Add("Alt" .. i))
 end

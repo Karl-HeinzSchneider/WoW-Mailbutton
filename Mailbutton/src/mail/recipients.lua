@@ -3,11 +3,17 @@ local recipients = {}
 app.recipients = recipients
 
 function recipients:IsDoubleNameClient()
+    -- Current Forever clients have their own project ID; Retail is also mainline.
+    if WOW_PROJECT_CAMELOT ~= nil and WOW_PROJECT_ID == WOW_PROJECT_CAMELOT then
+        return true
+    end
+    -- Earlier Forever builds reported mainline. Accept patches in the 1.60.x series.
     if type(GetBuildInfo) ~= "function" then
         return false
     end
     local _, _, _, interface = GetBuildInfo()
-    return tonumber(interface) == 16001
+    interface = tonumber(interface)
+    return interface ~= nil and interface >= 16000 and interface < 16100
 end
 
 function recipients:Example()
